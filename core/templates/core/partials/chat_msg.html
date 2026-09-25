@@ -1,0 +1,10 @@
+<div class="chat-msg chat-msg--ai">
+    <div class="chat-reply">{{ reply|safe }}</div>
+    {% if actions %}
+    <div class="chat-actions">
+        {% for action in actions %}
+        <span class="chat-action-chip">{{ action }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

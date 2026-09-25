@@ -1,5 +1,6 @@
 import os
 import sys
+import io
 import webbrowser
 import threading
 import time
@@ -16,33 +17,31 @@ def main():
     os.chdir(base_dir)
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'axiom.settings')
 
+    if sys.stdout is None:
+        sys.stdout = io.TextIOWrapper(io.BytesIO(), encoding='utf-8')
+    if sys.stderr is None:
+        sys.stderr = io.TextIOWrapper(io.BytesIO(), encoding='utf-8')
+
     if getattr(sys, 'frozen', False):
         os.environ['AXIOM_FROZEN'] = '1'
-        db_path = os.path.join(base_dir, 'db.sqlite3')
-        if not os.path.exists(db_path):
-            import django
-            django.setup()
-            from django.core.management import call_command
-            call_command('migrate', '--run-syncdb', verbosity=0)
-        else:
-            import django
-            django.setup()
-            from django.core.management import call_command
-            call_command('migrate', verbosity=0)
-    else:
-        import django
-        django.setup()
 
+    import django
+    django.setup()
     from django.core.management import call_command
+    call_command('migrate', verbosity=0)
 
     def open_browser():
-        time.sleep(2)
-        webbrowser.open('http://127.0.0.1:8000/')
+        time.sleep(2.5)
+        webbrowser.open('http://127.0.0.1:8765/')
 
     if '--no-browser' not in sys.argv:
         threading.Thread(target=open_browser, daemon=True).start()
 
-    call_command('runserver', '127.0.0.1:8000', '--noreload', use_reloader=False)
+    from django.core.management.commands.runserver import Command as RunServer
+    RunServer.stdout = sys.stdout
+    RunServer.stderr = sys.stderr
+
+    call_command('runserver', '127.0.0.1:8765', '--noreload')
 
 
 if __name__ == '__main__':

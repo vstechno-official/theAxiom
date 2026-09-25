@@ -40,7 +40,7 @@
             </div>
         </div>
 
-        <div class="card" style="max-height: 280px; overflow-y: auto;">
+        <div class="card" style="max-height: 200px; overflow-y: auto;">
             <div class="card-header" style="padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
                 <h3 style="font-size: 0.85rem;">CONCEPT INDEX</h3>
             </div>
@@ -52,10 +52,10 @@
                        hx-get="{% url 'node_detail' node.id %}"
                        hx-target="#node-panel"
                        hx-swap="innerHTML"
-                       style="border: none; font-size: 0.75rem;">
+                       style="border: none; font-size: 0.72rem;">
                         {{ node.label }}
                     </a>
-                    <span class="mono" style="margin-left: auto; font-size: 0.62rem; color: var(--text-dim);">
+                    <span class="mono" style="margin-left: auto; font-size: 0.58rem; color: var(--text-dim);">
                         d{{ node.depth }}
                     </span>
                 </li>
@@ -63,6 +63,33 @@
             </ul>
         </div>
     </div>
+</div>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h3>TALK TO AXIOM</h3>
+        <button class="btn btn-sm" style="font-size:0.65rem; padding:0.2rem 0.5rem;"
+                hx-post="{% url 'chat_reset' goal.id %}"
+                hx-target="#chat-messages"
+                hx-swap="innerHTML"
+                hx-confirm="clear chat session?">RESET</button>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg chat-msg--ai">
+            <div class="chat-reply">hi. i'm axiom. i'll help you understand <strong>{{ goal.title }}</strong>. tell me what you want to learn, ask me to explain something, or say "add [concept]" to build the graph. first — what's your name?</div>
+        </div>
+    </div>
+    <form class="chat-input-row"
+          hx-post="{% url 'chat_message' goal.id %}"
+          hx-target="#chat-messages"
+          hx-swap="beforeend"
+          hx-on::after-request="this.reset(); scrollChat(); document.getElementById('chatField').focus();">
+        {% csrf_token %}
+        <input type="text" name="message" id="chatField" class="chat-field"
+               placeholder="ask anything, or tell me to add/remove/connect nodes..."
+               autocomplete="off" required>
+        <button type="submit" class="btn btn-fill chat-send">SEND</button>
+    </form>
 </div>
 {% endblock %}
 
@@ -172,6 +199,19 @@
             animate: true,
             animationDuration: 200,
         }).run();
+        location.reload();
+    });
+
+    function scrollChat() {
+        const el = document.getElementById('chat-messages');
+        if (el) el.scrollTop = el.scrollHeight;
+    }
+
+    document.getElementById('chatField').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.closest('form').requestSubmit();
+        }
     });
 
     if (typeof AxiomBrain !== 'undefined') {
