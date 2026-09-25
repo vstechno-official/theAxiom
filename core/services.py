@@ -171,8 +171,8 @@ def _assign_depths(goal) -> None:
     from .models import ConceptNode, Edge
 
     g = nx.DiGraph()
-    nodes = list(goal.nodes.values_list("id", "namespace"))
-    g.add_nodes_from(nodes)
+    node_ids = list(goal.nodes.values_list("id", flat=True))
+    g.add_nodes_from(node_ids)
 
     edges = list(goal.edges.values_list("source_id", "target_id"))
     g.add_edges_from(edges)
