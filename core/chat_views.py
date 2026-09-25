@@ -85,7 +85,8 @@ def chat_message(request, goal_id: int):
     history.append({"role": "user", "content": user_msg})
 
     messages = build_chat_messages(goal, user_profile, history, user_msg)
-    ai_response = call_openrouter(messages)
+    api_key = request.headers.get("X-Axiom-Api-Key", "").strip() or None
+    ai_response = call_openrouter(messages, api_key=api_key)
 
     reply = ai_response.get("reply", "something went wrong.")
     actions = ai_response.get("actions", [])

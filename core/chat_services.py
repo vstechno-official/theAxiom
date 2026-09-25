@@ -56,11 +56,11 @@ RULES:
 """
 
 
-def call_openrouter(messages: list[dict], model: str | None = None, temperature: float = 0.3, max_tokens: int = 2048) -> dict:
-    api_key = settings.OPENROUTER_API_KEY
+def call_openrouter(messages: list[dict], model: str | None = None, api_key: str | None = None, temperature: float = 0.3, max_tokens: int = 2048) -> dict:
+    api_key = api_key or settings.OPENROUTER_API_KEY
     if not api_key:
         return {
-            "reply": "OpenRouter API key not configured. Add OPENROUTER_API_KEY to your .env file. Get a free key at openrouter.ai",
+            "reply": "no openrouter api key found. click the gear icon (bottom-right) and paste your key. get a free one at openrouter.ai/keys",
             "actions": [],
         }
 

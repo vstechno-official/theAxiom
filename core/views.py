@@ -46,8 +46,10 @@ def create_goal(request):
         root_namespace=root_namespace,
     )
 
+    api_key = request.headers.get("X-Axiom-Api-Key", "").strip() or None
+
     try:
-        nodes, edges = decompose_and_import(goal, user_text)
+        nodes, edges = decompose_and_import(goal, user_text, api_key=api_key)
     except Exception as exc:
         goal.delete()
         logger.exception("Decomposition failed for goal %s", title)

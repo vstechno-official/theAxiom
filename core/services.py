@@ -60,6 +60,7 @@ def decompose_to_graph(
     user_text: str,
     *,
     model: str | None = None,
+    api_key: str | None = None,
     temperature: float = 0.2,
     max_tokens: int = 4096,
 ) -> dict[str, Any]:
@@ -68,9 +69,9 @@ def decompose_to_graph(
     Raises ValueError on malformed output.
     Raises requests.HTTPError on API failures.
     """
-    api_key = settings.OPENROUTER_API_KEY
+    api_key = api_key or settings.OPENROUTER_API_KEY
     if not api_key:
-        raise ValueError("OPENROUTER_API_KEY is not configured.")
+        raise ValueError("No OpenRouter API key configured. Add one in Settings (gear icon) or set OPENROUTER_API_KEY in .env")
 
     model = model or settings.OPENROUTER_MODEL
 
@@ -186,9 +187,9 @@ def _assign_depths(goal) -> None:
             ConceptNode.objects.filter(id=node_id).update(depth=depth)
 
 
-def decompose_and_import(goal, user_text: str) -> tuple[list, list]:
+def decompose_and_import(goal, user_text: str, api_key: str | None = None) -> tuple[list, list]:
     """Full pipeline: call LLM → import → assign depths."""
-    graph_data = decompose_to_graph(goal.title, goal.root_namespace, user_text)
+    graph_data = decompose_to_graph(goal.title, goal.root_namespace, user_text, api_key=api_key)
     nodes, edges = import_graph(goal, graph_data)
     _assign_depths(goal)
     return nodes, edges
