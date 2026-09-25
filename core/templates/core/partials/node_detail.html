@@ -1,0 +1,72 @@
+{% load axiom_tags %}
+
+<div class="card node-detail">
+    <div class="node-label">{{ node.label }}</div>
+    <div class="node-namespace">{{ node.namespace }}</div>
+
+    <div class="node-state" style="background: {{ node.cognitive_state|state_color }}15; color: {{ node.cognitive_state|state_color }};">
+        {{ node.cognitive_state|state_icon }} {{ node.get_cognitive_state_display }}
+    </div>
+
+    {% if node.summary %}
+    <div class="node-summary">{{ node.summary }}</div>
+    {% endif %}
+
+    <div class="node-actions">
+        {% if node.cognitive_state != "repaired" and node.cognitive_state != "mastered" %}
+        <button class="btn btn-red btn-sm"
+                hx-post="{% url 'trigger_trace' node.id %}"
+                hx-target="#node-panel"
+                hx-swap="innerHTML"
+                hx-confirm="trigger trace for '{{ node.label }}'?">
+            ✗ I FORGOT THIS
+        </button>
+        {% endif %}
+
+        {% if node.cognitive_state == "broken" %}
+        <button class="btn btn-green btn-sm"
+                hx-post="{% url 'trigger_repair' node.id %}"
+                hx-target="#node-panel"
+                hx-swap="innerHTML"
+                onclick="if(typeof AxiomBrain!=='undefined') AxiomBrain.recordInteraction('{{ node.id }}','{{ node.namespace }}','repair','understood')">
+            ◐ I UNDERSTAND NOW
+        </button>
+        {% endif %}
+    </div>
+
+    {% if prerequisites %}
+    <div class="section-title">PREREQUISITES</div>
+    <ul class="dep-list">
+        {% for pre in prerequisites %}
+        <li>
+            <span class="state-dot state-dot--{{ pre.cognitive_state }}"></span>
+            <a href="#"
+               hx-get="{% url 'node_detail' pre.id %}"
+               hx-target="#node-panel"
+               hx-swap="innerHTML"
+               style="border: none;">
+                {{ pre.label }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if dependents %}
+    <div class="section-title">DEPENDENTS</div>
+    <ul class="dep-list">
+        {% for dep in dependents %}
+        <li>
+            <span class="state-dot state-dot--{{ dep.cognitive_state }}"></span>
+            <a href="#"
+               hx-get="{% url 'node_detail' dep.id %}"
+               hx-target="#node-panel"
+               hx-swap="innerHTML"
+               style="border: none;">
+                {{ dep.label }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>

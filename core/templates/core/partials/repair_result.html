@@ -1,0 +1,71 @@
+{% load axiom_tags %}
+
+<div class="card node-detail">
+    <div class="node-label">{{ node.label }}</div>
+    <div class="node-namespace">{{ node.namespace }}</div>
+
+    <div class="node-state" style="background: {{ node.cognitive_state|state_color }}15; color: {{ node.cognitive_state|state_color }};">
+        {{ node.cognitive_state|state_icon }} {{ node.get_cognitive_state_display }}
+    </div>
+
+    <div class="repair-result">
+        <strong>REPAIRED</strong>
+        <p style="margin-top: 0.35rem;">
+            <em>{{ node.label }}</em> is now <strong style="color: var(--green);">repaired</strong>.
+        </p>
+        {% if repair_result.cascaded %}
+        <p style="margin-top: 0.35rem;">
+            cascade — these dependents were also auto-repaired:
+        </p>
+        <ul class="dep-list">
+            {% for cascaded in repair_result.cascaded %}
+            <li>
+                <span class="state-dot state-dot--repaired"></span>
+                {{ cascaded.label }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+    {% if node.summary %}
+    <div class="section-title" style="margin-top: 0.8rem;">SUMMARY</div>
+    <div class="node-summary">{{ node.summary }}</div>
+    {% endif %}
+
+    {% if prerequisites %}
+    <div class="section-title">PREREQUISITES</div>
+    <ul class="dep-list">
+        {% for pre in prerequisites %}
+        <li>
+            <span class="state-dot state-dot--{{ pre.cognitive_state }}"></span>
+            <a href="#"
+               hx-get="{% url 'node_detail' pre.id %}"
+               hx-target="#node-panel"
+               hx-swap="innerHTML"
+               style="border: none;">
+                {{ pre.label }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if dependents %}
+    <div class="section-title">DEPENDENTS</div>
+    <ul class="dep-list">
+        {% for dep in dependents %}
+        <li>
+            <span class="state-dot state-dot--{{ dep.cognitive_state }}"></span>
+            <a href="#"
+               hx-get="{% url 'node_detail' dep.id %}"
+               hx-target="#node-panel"
+               hx-swap="innerHTML"
+               style="border: none;">
+                {{ dep.label }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>

@@ -1,0 +1,63 @@
+{% extends "core/base.html" %}
+
+{% block title %}AXIOM{% endblock %}
+
+{% block content %}
+{% if goals %}
+<div class="goal-grid">
+    {% for goal in goals %}
+    <a href="{% url 'goal_detail' goal.id %}" class="goal-card">
+        <div class="goal-card-title">{{ goal.title }}</div>
+        <div class="goal-card-meta">
+            <span class="namespace-tag">{{ goal.root_namespace }}</span>
+            <span style="margin-left: 0.5rem;">{{ goal.nodes.count }} concepts</span>
+        </div>
+        {% if goal.description %}
+        <p style="font-size: 0.78rem; color: var(--text-dim); margin-top: 0.5rem;">
+            {{ goal.description|truncatewords:20 }}
+        </p>
+        {% endif %}
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>no goals yet. describe what you want to understand.</p>
+</div>
+{% endif %}
+
+<div class="new-goal-form">
+    <h3 style="margin-bottom: 1rem;">NEW GOAL</h3>
+    <form hx-post="{% url 'create_goal' %}" hx-indicator=".loader">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="title">WHAT DO YOU WANT TO UNDERSTAND?</label>
+            <input type="text" name="title" id="title" placeholder="master classical mechanics" required>
+        </div>
+        <div class="form-group">
+            <label for="root_namespace">MIA NAMESPACE</label>
+            <input type="text" name="root_namespace" id="root_namespace" placeholder="cisce.icse.physics" required>
+        </div>
+        <div class="form-group">
+            <label for="description">DESCRIPTION (OPTIONAL)</label>
+            <input type="text" name="description" id="description" placeholder="one sentence about your learning objective">
+        </div>
+        <div class="form-group">
+            <label for="user_text">DESCRIBE THE SUBJECT</label>
+            <textarea name="user_text" id="user_text" placeholder="describe the subject in your own words. the AI will decompose it into prerequisite concepts and map their dependencies." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-fill">DECOMPOSE</button>
+        <div class="loader">
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+            <div class="loader-dot"></div>
+        </div>
+    </form>
+</div>
+
+<script>
+    if (typeof AxiomBrain !== 'undefined') {
+        AxiomBrain.updateStats();
+    }
+</script>
+{% endblock %}

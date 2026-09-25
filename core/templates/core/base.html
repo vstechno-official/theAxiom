@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}AXIOM{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/axiom.css' %}">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <svg class="logo-mark" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="18" cy="18" r="17" stroke="#c9a96e" stroke-width="1.5"/>
+                    <circle cx="18" cy="14" r="6" stroke="#c9a96e" stroke-width="1" fill="none"/>
+                    <path d="M12 14 C12 8, 24 8, 24 14" stroke="#c9a96e" stroke-width="1" fill="none"/>
+                    <circle cx="14" cy="13" r="1.5" fill="#c9a96e" opacity="0.6"/>
+                    <circle cx="22" cy="13" r="1.5" fill="#c9a96e" opacity="0.6"/>
+                    <path d="M18 20 L18 28" stroke="#c9a96e" stroke-width="1"/>
+                    <path d="M14 24 L22 24" stroke="#c9a96e" stroke-width="1"/>
+                    <path d="M15 22 L13 26" stroke="#c9a96e" stroke-width="0.8" opacity="0.5"/>
+                    <path d="M21 22 L23 26" stroke="#c9a96e" stroke-width="0.8" opacity="0.5"/>
+                    <circle cx="10" cy="10" r="1" fill="#c9a96e" opacity="0.3"/>
+                    <circle cx="26" cy="10" r="1" fill="#c9a96e" opacity="0.3"/>
+                    <circle cx="18" cy="6" r="1" fill="#c9a96e" opacity="0.3"/>
+                    <line x1="10" y1="10" x2="14" y2="13" stroke="#c9a96e" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="26" y1="10" x2="22" y2="13" stroke="#c9a96e" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="18" y1="6" x2="18" y2="8" stroke="#c9a96e" stroke-width="0.5" opacity="0.3"/>
+                </svg>
+                <div class="brand-text">
+                    <span class="brand-name">AXIOM</span>
+                    <span class="brand-tag">explore what your mind couldnt comprehend by itself</span>
+                </div>
+            </div>
+            <nav>
+                <a href="{% url 'index' %}">HOME</a>
+                <a href="/admin/">ADMIN</a>
+            </nav>
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+        <footer>
+            built by vedant vaibhav salaskar &middot; the mind is a graph, not a list
+        </footer>
+    </div>
+
+    <div class="brain-panel">
+        <div class="brain-dropdown" id="brainDropdown">
+            <h4>YOUR BRAIN</h4>
+            <div class="brain-actions">
+                <button onclick="AxiomBrain.exportBrain()">EXPORT BRAIN DATA</button>
+                <button onclick="AxiomBrain.importBrain()">IMPORT BRAIN DATA</button>
+                <button onclick="AxiomBrain.clearBrain()">CLEAR ALL DATA</button>
+            </div>
+            <div class="brain-stats" id="brainStats"></div>
+        </div>
+        <button class="brain-toggle" onclick="document.getElementById('brainDropdown').classList.toggle('open')">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 3C7 3 4 5.5 4 9C4 11.5 5.5 13.5 7.5 14.5L7 17L10 15.5L13 17L12.5 14.5C14.5 13.5 16 11.5 16 9C16 5.5 13 3 10 3Z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                <circle cx="8" cy="8.5" r="1" fill="currentColor" opacity="0.5"/>
+                <circle cx="12" cy="8.5" r="1" fill="currentColor" opacity="0.5"/>
+                <path d="M8 11C8.5 12 9.5 12.5 10 12.5C10.5 12.5 11.5 12 12 11" stroke="currentColor" stroke-width="0.8" fill="none"/>
+            </svg>
+        </button>
+    </div>
+
+    <input type="file" id="brainFileInput" accept=".json" style="display:none" onchange="AxiomBrain.handleImport(this)">
+
+    <script>
+    const AxiomBrain = {
+        STORAGE_KEY: 'axiom_brain_state',
+
+        getState() {
+            try {
+                const raw = localStorage.getItem(this.STORAGE_KEY);
+                return raw ? JSON.parse(raw) : { nodes: {}, sessions: [], version: 1 };
+            } catch { return { nodes: {}, sessions: [], version: 1 }; }
+        },
+
+        saveState(state) {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(state));
+            this.updateStats();
+        },
+
+        recordInteraction(nodeId, namespace, action, detail) {
+            const state = this.getState();
+            if (!state.nodes[nodeId]) {
+                state.nodes[nodeId] = { namespace, interactions: [], firstSeen: Date.now() };
+            }
+            state.nodes[nodeId].interactions.push({
+                action, detail, timestamp: Date.now()
+            });
+            state.nodes[nodeId].lastAction = action;
+            state.nodes[nodeId].lastSeen = Date.now();
+            this.saveState(state);
+        },
+
+        recordSession(goalId, goalTitle) {
+            const state = this.getState();
+            state.sessions.push({
+                goalId, goalTitle,
+                started: Date.now(),
+                userAgent: navigator.userAgent
+            });
+            if (state.sessions.length > 100) state.sessions = state.sessions.slice(-50);
+            this.saveState(state);
+        },
+
+        exportBrain() {
+            const state = this.getState();
+            const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `axiom-brain-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        },
+
+        importBrain() {
+            document.getElementById('brainFileInput').click();
+        },
+
+        handleImport(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.version && imported.nodes) {
+                        const current = this.getState();
+                        for (const [nodeId, data] of Object.entries(imported.nodes)) {
+                            if (!current.nodes[nodeId]) {
+                                current.nodes[nodeId] = data;
+                            } else {
+                                current.nodes[nodeId].interactions = [
+                                    ...(current.nodes[nodeId].interactions || []),
+                                    ...(data.interactions || [])
+                                ].sort((a, b) => a.timestamp - b.timestamp);
+                            }
+                        }
+                        current.sessions = [...(current.sessions || []), ...(imported.sessions || [])];
+                        this.saveState(current);
+                        alert('Brain data imported successfully.');
+                    } else {
+                        alert('Invalid brain data file.');
+                    }
+                } catch { alert('Failed to parse brain data file.'); }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        },
+
+        clearBrain() {
+            if (confirm('Clear all brain data? This cannot be undone.')) {
+                localStorage.removeItem(this.STORAGE_KEY);
+                this.updateStats();
+            }
+        },
+
+        updateStats() {
+            const el = document.getElementById('brainStats');
+            if (!el) return;
+            const state = this.getState();
+            const nodeCount = Object.keys(state.nodes).length;
+            const sessionCount = (state.sessions || []).length;
+            const totalInteractions = Object.values(state.nodes)
+                .reduce((sum, n) => sum + (n.interactions || []).length, 0);
+            el.innerHTML = `${nodeCount} nodes tracked · ${totalInteractions} interactions · ${sessionCount} sessions`;
+        }
+    };
+    AxiomBrain.updateStats();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

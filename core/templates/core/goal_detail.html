@@ -1,0 +1,181 @@
+{% extends "core/base.html" %}
+{% load axiom_tags %}
+
+{% block title %}{{ goal.title }}{% endblock %}
+
+{% block head_extra %}
+<script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+<script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'index' %}" class="back-link">ALL GOALS</a>
+
+<h2>{{ goal.title }}</h2>
+<p style="color: var(--text-dim); margin-bottom: 0.5rem; font-size: 0.82rem;">
+    <span class="namespace-tag">{{ goal.root_namespace }}</span>
+    {% if goal.description %}
+    <span style="margin-left: 0.5rem;">{{ goal.description }}</span>
+    {% endif %}
+</p>
+
+<div class="stat-bar">
+    <span class="stat-chip">○ {{ stats.unknown }}</span>
+    <span class="stat-chip stat-chip--broken">✗ {{ stats.broken }}</span>
+    <span class="stat-chip stat-chip--repaired">◐ {{ stats.repaired }}</span>
+    <span class="stat-chip">● {{ stats.mastered }}</span>
+    <span class="stat-chip">{{ stats.total }} total</span>
+</div>
+
+<div class="graph-container">
+    <div id="cy"></div>
+
+    <div class="sidebar">
+        <div id="node-panel">
+            <div class="card">
+                <p style="color: var(--text-dim); font-style: italic; font-size: 0.82rem;">
+                    click a node to inspect it
+                </p>
+            </div>
+        </div>
+
+        <div class="card" style="max-height: 280px; overflow-y: auto;">
+            <div class="card-header" style="padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+                <h3 style="font-size: 0.85rem;">CONCEPT INDEX</h3>
+            </div>
+            <ul class="dep-list">
+                {% for node in nodes %}
+                <li>
+                    <span class="state-dot state-dot--{{ node.cognitive_state }}"></span>
+                    <a href="#"
+                       hx-get="{% url 'node_detail' node.id %}"
+                       hx-target="#node-panel"
+                       hx-swap="innerHTML"
+                       style="border: none; font-size: 0.75rem;">
+                        {{ node.label }}
+                    </a>
+                    <span class="mono" style="margin-left: auto; font-size: 0.62rem; color: var(--text-dim);">
+                        d{{ node.depth }}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    cytoscape.use(cytoscapeDagre);
+
+    const elementsData = {{ elements_json|safe }};
+
+    const cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: elementsData,
+        style: [
+            {
+                selector: 'node',
+                style: {
+                    'label': 'data(label)',
+                    'background-color': 'data(color)',
+                    'color': '#8a8578',
+                    'text-valign': 'bottom',
+                    'text-margin-y': 8,
+                    'font-size': '10px',
+                    'font-family': 'De Luxe Next, Georgia, serif',
+                    'width': 32,
+                    'height': 32,
+                    'border-width': 1.5,
+                    'border-color': 'data(color)',
+                    'border-opacity': 0.4,
+                    'background-opacity': 0.85,
+                    'text-wrap': 'wrap',
+                    'text-max-width': '90px',
+                }
+            },
+            {
+                selector: 'node[state="broken"]',
+                style: {
+                    'border-width': 2,
+                    'border-color': '#b33a3a',
+                    'border-opacity': 1,
+                    'background-color': '#b33a3a',
+                    'color': '#b33a3a',
+                }
+            },
+            {
+                selector: 'node[state="repaired"]',
+                style: {
+                    'background-color': '#3a7a4a',
+                    'border-color': '#3a7a4a',
+                    'color': '#3a7a4a',
+                }
+            },
+            {
+                selector: 'edge',
+                style: {
+                    'width': 1,
+                    'line-color': '#3a3a3a',
+                    'target-arrow-color': '#3a3a3a',
+                    'target-arrow-shape': 'triangle',
+                    'arrow-scale': 0.7,
+                    'curve-style': 'bezier',
+                }
+            },
+            {
+                selector: 'node:selected',
+                style: {
+                    'border-width': 2,
+                    'border-color': '#c9a96e',
+                    'border-opacity': 1,
+                }
+            }
+        ],
+        layout: {
+            name: 'dagre',
+            rankDir: 'TB',
+            rankSep: 70,
+            nodeSep: 35,
+            animate: true,
+            animationDuration: 300,
+        },
+        minZoom: 0.3,
+        maxZoom: 3,
+        wheelSensitivity: 0.2,
+        boxSelectionEnabled: false,
+    });
+
+    cy.on('tap', 'node', function(evt) {
+        const nodeId = evt.target.data('id');
+        const nodeNs = evt.target.data('namespace');
+        if (typeof AxiomBrain !== 'undefined') {
+            AxiomBrain.recordInteraction(nodeId, nodeNs, 'view', 'node_inspected');
+        }
+        htmx.ajax('GET', '/node/' + nodeId + '/', {
+            target: '#node-panel',
+            swap: 'innerHTML'
+        });
+    });
+
+    document.body.addEventListener('graphUpdate', function(evt) {
+        const newElements = evt.detail.elements;
+        cy.elements().remove();
+        cy.add(newElements);
+        cy.layout({
+            name: 'dagre',
+            rankDir: 'TB',
+            rankSep: 70,
+            nodeSep: 35,
+            animate: true,
+            animationDuration: 200,
+        }).run();
+    });
+
+    if (typeof AxiomBrain !== 'undefined') {
+        AxiomBrain.recordSession({{ goal.id }}, '{{ goal.title|escapejs }}');
+    }
+</script>
+{% endblock %}

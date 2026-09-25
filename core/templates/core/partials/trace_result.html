@@ -1,0 +1,60 @@
+{% load axiom_tags %}
+
+<div class="card node-detail">
+    <div class="node-label">{{ node.label }}</div>
+    <div class="node-namespace">{{ node.namespace }}</div>
+
+    <div class="node-state" style="background: {{ node.cognitive_state|state_color }}15; color: {{ node.cognitive_state|state_color }};">
+        {{ node.cognitive_state|state_icon }} {{ node.get_cognitive_state_display }}
+    </div>
+
+    <div class="trace-result">
+        <strong>TRACE COMPLETE</strong>
+        <p style="margin-top: 0.35rem;">
+            backward trace from <em>{{ trace_result.origin.label }}</em>
+            found <strong style="color: var(--red);">{{ trace_result.broken_node.label }}</strong>
+            as the broken prerequisite.
+        </p>
+
+        {% if trace_result.trace_path %}
+        <div class="trace-path">
+            {% for tp in trace_result.trace_path %}
+            <span class="trace-node {% if tp.id == trace_result.broken_node.id %}trace-node--broken{% endif %}">
+                {{ tp.label }}
+            </span>
+            {% if not forloop.last %}<span class="trace-arrow">→</span>{% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="node-actions" style="margin-top: 0.8rem;">
+        {% if trace_result.broken_node.cognitive_state == "broken" %}
+        <button class="btn btn-green btn-sm"
+                hx-post="{% url 'trigger_repair' trace_result.broken_node.id %}"
+                hx-target="#node-panel"
+                hx-swap="innerHTML"
+                onclick="if(typeof AxiomBrain!=='undefined') AxiomBrain.recordInteraction('{{ trace_result.broken_node.id }}','{{ trace_result.broken_node.namespace }}','trace_repair','repaired after trace')">
+            ◐ REPAIR: {{ trace_result.broken_node.label }}
+        </button>
+        {% endif %}
+    </div>
+
+    {% if prerequisites %}
+    <div class="section-title">PREREQUISITES</div>
+    <ul class="dep-list">
+        {% for pre in prerequisites %}
+        <li>
+            <span class="state-dot state-dot--{{ pre.cognitive_state }}"></span>
+            <a href="#"
+               hx-get="{% url 'node_detail' pre.id %}"
+               hx-target="#node-panel"
+               hx-swap="innerHTML"
+               style="border: none;">
+                {{ pre.label }}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
