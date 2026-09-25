@@ -70,7 +70,7 @@ build_exe.bat
 
 output: `dist\Axiom\Axiom.exe`
 
-double-click it. it opens in your browser. no python needed.
+double-click it. it opens in your browser. 
 
 ## the namespace system (CID)
 

@@ -10,13 +10,13 @@
 
 Axiom is a web application that models human understanding as a directed dependency graph. When a student cannot recall a concept, Axiom traces the graph backward through prerequisites to identify the deepest foundational gap, then guides targeted repair of that gap — automatically cascading recovery upward through dependent concepts when possible.
 
-The system is built on Django 5.x with NetworkX for graph algorithms, Cytoscape.js for interactive visualization, HTMX for partial-page updates, and OpenRouter's API for AI-powered concept decomposition. It uses a custom Managed Identifier Architecture (MIA) namespace protocol to disambiguate concepts across academic domains.
+The system is built on Django 5.x with NetworkX for graph algorithms, Cytoscape.js for interactive visualization, HTMX for partial-page updates, and OpenRouter's API for AI-powered concept decomposition. It uses a custom Concept Identifier (CID) namespace protocol to disambiguate concepts across academic domains.
 
 ### Core Conceptual Model
 
 Every knowledge domain is decomposed into a directed acyclic graph where:
 
-- **Nodes** represent atomic concepts, each carrying a MIA namespace (`cisce.icse.chemistry.redox.oxidation_state`) and one of four cognitive states: `unknown`, `broken`, `repaired`, `mastered`.
+- **Nodes** represent atomic concepts, each carrying a CID namespace (`cisce.icse.chemistry.redox.oxidation_state`) and one of four cognitive states: `unknown`, `broken`, `repaired`, `mastered`.
 - **Edges** represent `requires` dependencies — an arrow from A to B means "B requires A."
 - **Goals** are top-level learning objectives that own their subgraphs (e.g., "Master Classical Mechanics").
 
@@ -78,7 +78,7 @@ For a student project targeting admissions portfolio visibility:
 
 ## 3. Technical Architecture
 
-### 3.1 MIA (Managed Identifier Architecture) Namespace Protocol
+### 3.1 CID (Concept Identifier) Namespace Protocol
 
 Every concept node carries a strictly enforced dot-separated namespace validated at the database level:
 
@@ -94,10 +94,10 @@ cisce.icse.chemistry.redox.oxidation_state
 The regex validator in `models.py` enforces this:
 
 ```python
-MIA_NAMESPACE_PATTERN = r"^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){2,}$"
+CID_NAMESPACE_PATTERN = r"^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){2,}$"
 ```
 
-This design solves a real disambiguation problem: "O.S." could mean Operating System (computer science) or Oxidation State (chemistry). The MIA namespace makes every concept globally unambiguous within a goal's scope. The database enforces uniqueness via a composite constraint (`goal + namespace`).
+This design solves a real disambiguation problem: "O.S." could mean Operating System (computer science) or Oxidation State (chemistry). The CID namespace makes every concept globally unambiguous within a goal's scope. The database enforces uniqueness via a composite constraint (`goal + namespace`).
 
 ### 3.2 NetworkX Backward Trace Algorithm
 
@@ -303,7 +303,7 @@ Cytoscape.js renders graphs as SVG/Canvas in the browser. Recommended limits:
 
 Axiom's typical academic graphs (30–200 nodes per goal) fall well within the excellent range. The dagre layout algorithm is O(V + E) for DAGs, which is optimal.
 
-For very large graphs, the MIA namespace enables natural subgraph filtering — display only `cisce.icse.chemistry.*` instead of the full tree.
+For very large graphs, the CID namespace enables natural subgraph filtering — display only `cisce.icse.chemistry.*` instead of the full tree.
 
 ### 5.2 NetworkX Algorithm Complexity
 
@@ -383,7 +383,7 @@ axiom/
 │   ├── urls.py              # Root URL routing
 │   └── wsgi.py              # WSGI entry point
 ├── core/
-│   ├── models.py            # Goal, ConceptNode, Edge (MIA namespace protocol)
+│   ├── models.py            # Goal, ConceptNode, Edge (CID namespace protocol)
 │   ├── services.py          # OpenRouter API integration
 │   ├── tracing.py           # NetworkX backward trace + repair cascade
 │   ├── views.py             # Django views + HTMX partial rendering
