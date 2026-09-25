@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.validators import RegexValidator
 
-MIA_NAMESPACE_PATTERN = r"^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){2,}$"
-MIAValidator = RegexValidator(
-    MIA_NAMESPACE_PATTERN,
+CID_NAMESPACE_PATTERN = r"^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*){2,}$"
+CIDValidator = RegexValidator(
+    CID_NAMESPACE_PATTERN,
     "Namespace must be lowercase dot-separated (e.g. cisce.icse.chemistry.redox).",
 )
 
@@ -14,8 +14,8 @@ class Goal(models.Model):
     root_namespace = models.CharField(
         max_length=512,
         unique=True,
-        validators=[MIAValidator],
-        help_text="Root MIA namespace (e.g. cisce.icse.chemistry).",
+        validators=[CIDValidator],
+        help_text="Root CID namespace (e.g. cisce.icse.chemistry).",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -36,8 +36,8 @@ class ConceptNode(models.Model):
     goal = models.ForeignKey(Goal, on_delete=models.CASCADE, related_name="nodes")
     namespace = models.CharField(
         max_length=768,
-        validators=[MIAValidator],
-        help_text="Fully-qualified MIA namespace.",
+        validators=[CIDValidator],
+        help_text="Fully-qualified CID namespace.",
         db_index=True,
     )
     label = models.CharField(max_length=256)

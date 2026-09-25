@@ -50,22 +50,10 @@ this is the part i care about most. everything you do — every node you inspect
 
 this is the beginning of a system that can eventually simulate how YOU think about a subject.
 
-## stack
-
-| layer | tech |
-|-------|------|
-| backend | Django 5.x |
-| graph engine | NetworkX |
-| visualization | Cytoscape.js + dagre |
-| frontend | HTMX (no js frameworks) |
-| AI | OpenRouter API |
-| fonts | De Luxe Next + Maxtune |
-| packaging | PyInstaller → Windows EXE |
-
 ## run it
 
 ```bash
-cd axiomFULLPROJECT
+cd theAxiom
 py -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
 .venv\Scripts\python manage.py migrate
@@ -84,9 +72,9 @@ output: `dist\Axiom\Axiom.exe`
 
 double-click it. it opens in your browser. no python needed.
 
-## the MIA namespace protocol
+## the namespace system (CID)
 
-every concept in axiom gets a dot-separated namespace:
+every concept in axiom gets a dot-separated identifier:
 
 ```
 cisce.icse.chemistry.redox.oxidation_state
@@ -96,16 +84,6 @@ board     std   subject   unit concept
 
 this prevents collisions. "O.S." could mean Operating System or Oxidation State. the namespace makes it unambiguous. this is a real problem in knowledge graphs and i solved it.
 
-## design
-
-no dark mode trends. no neon. no "cyberpunk". just a quiet, dark interface that gets out of your way. the kind of thing you'd find on an actual researcher's desk at 2am.
-
-- **De Luxe Next** for body text (serif, readable, serious)
-- **Maxtune** for titles (uppercase only, bold, editorial)
-- **JetBrains Mono** for namespaces and system IDs
-- gold accent (`#c9a96e`) on dark grey (`#1a1a1a`)
-- oxblood red for broken concepts, forest green for repaired
-
 ## research doc
 
 there's a full research document in [RESEARCH.md](RESEARCH.md) covering:
@@ -114,14 +92,5 @@ there's a full research document in [RESEARCH.md](RESEARCH.md) covering:
 - deployment strategy
 - performance benchmarks
 - security considerations
-
-## built by
-
-**Vedant Vaibhav Salaskar** — 16, mumbai, india.
-
-github: [@vstechno-official](https://github.com/vstechno-official)
-email: salaskarvedant66@gmail.com
-
-this is a capstone engineering artifact. not a weekend project. not a hackathon demo. this is the kind of thing that proves you can architect real systems.
 
 Jai Maa Kali, Jai Shree Hari, Jai MahaKaal Vishwanath.
