@@ -1,3 +1,4 @@
+# A Axiom entity ;)
 from django.contrib import admin
 from django.urls import include, path
 

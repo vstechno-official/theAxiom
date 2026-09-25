@@ -75,7 +75,7 @@ double-click it. it opens in your browser.
 ## the namespace system (CID)
 
 every concept in axiom gets a dot-separated identifier:
-
+For eg(I am an ex-ICSE student so :) )->
 ```
 cisce.icse.chemistry.redox.oxidation_state
 ^         ^     ^         ^    ^

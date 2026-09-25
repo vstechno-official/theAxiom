@@ -1,3 +1,4 @@
+# A Axiom entity ;)
 from django.apps import AppConfig
 
 

@@ -1,3 +1,4 @@
+# A Axiom entity ;)
 from django.urls import path
 
 from . import chat_views, views

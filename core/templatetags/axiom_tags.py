@@ -1,3 +1,4 @@
+# A Axiom entity ;)
 from django import template
 
 register = template.Library()
