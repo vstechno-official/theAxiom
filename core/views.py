@@ -6,8 +6,9 @@ import logging
 
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
-from django_htmx.http import reswap, retarget
+from django_htmx.http import HttpResponseClientRedirect
 
 from .models import ConceptNode, Goal
 from .services import decompose_and_import
@@ -36,8 +37,8 @@ def create_goal(request):
 
     if not title or not root_namespace or not user_text:
         return HttpResponse(
-            '<div class="form-error">Title, namespace, and description are required.</div>',
-            status=400,
+            '<div class="form-error">title, namespace, and description are required.</div>',
+            status=200,
         )
 
     goal = Goal.objects.create(
@@ -54,10 +55,12 @@ def create_goal(request):
         goal.delete()
         logger.exception("Decomposition failed for goal %s", title)
         return HttpResponse(
-            f'<div class="form-error">AI decomposition failed: {exc}</div>',
-            status=500,
+            f'<div class="form-error">{exc}</div>',
+            status=200,
         )
 
+    if request.htmx:
+        return HttpResponseClientRedirect(reverse("goal_detail", args=[goal.id]))
     return redirect("goal_detail", goal_id=goal.id)
 
 

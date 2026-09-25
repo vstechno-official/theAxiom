@@ -28,7 +28,11 @@
 
 <div class="new-goal-form">
     <h3 style="margin-bottom: 1rem;">NEW GOAL</h3>
-    <form hx-post="{% url 'create_goal' %}" hx-indicator=".loader">
+    <div id="goal-form-error"></div>
+    <form hx-post="{% url 'create_goal' %}"
+          hx-target="#goal-form-error"
+          hx-swap="innerHTML"
+          hx-indicator=".loader">
         {% csrf_token %}
         <div class="form-group">
             <label for="title">WHAT DO YOU WANT TO UNDERSTAND?</label>
