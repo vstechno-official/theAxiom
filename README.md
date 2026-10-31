@@ -84,13 +84,5 @@ board     std   subject   unit concept
 
 this prevents collisions. "O.S." could mean Operating System or Oxidation State. the namespace makes it unambiguous. this is a real problem in knowledge graphs and i solved it.
 
-## research doc
-
-there's a full research document in [RESEARCH.md](RESEARCH.md) covering:
-- free hosting options (Railway, Render, Fly.io, PythonAnywhere)
-- technical architecture deep-dive
-- deployment strategy
-- performance benchmarks
-- security considerations
 
 Jai Maa Kali, Jai Shree Hari, Jai MahaKaal Vishwanath.
